@@ -8,5 +8,7 @@
 import Foundation
 
 class DecimalCalculator: Calculator {
+    static let shared = DecimalCalculator()
     
+    private override init() { }
 }

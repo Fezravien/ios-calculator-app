@@ -21,6 +21,44 @@ enum OperatorType: String, CaseIterable {
     case leftShift = "<<"
     case rightShift = ">>"
     
+    func resultDecimal(operatorType: Self, lhs: Double, rhs: Double = 0) -> Double {
+        switch operatorType{
+        case .add:
+            return lhs + rhs
+        case .subtract:
+            return lhs - rhs
+        case .multiple:
+            return lhs * rhs
+        case .divide:
+            return lhs / rhs
+        default:
+            return 0
+        }
+    }
+    
+    func resultBinary(operatorType: Self, lhs: Int, rhs: Int = 0) -> Int {
+        switch operatorType {
+        case .and:
+            return lhs & rhs
+        case .nand:
+            return ~(lhs & rhs)
+        case .or:
+            return lhs | rhs
+        case .nor:
+            return ~(lhs | rhs)
+        case .xor:
+            return lhs ^ rhs
+        case .not:
+            return ~lhs
+        case .leftShift:
+            return lhs << rhs
+        case .rightShift:
+            return lhs >> rhs
+        default:
+            return 0
+        }
+    }
+    
     var priority: Int {
         switch self {
         case .multiple, .divide, .not, .nand, .nor:

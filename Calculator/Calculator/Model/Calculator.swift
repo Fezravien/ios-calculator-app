@@ -7,18 +7,13 @@
 import Foundation
 
 class Calculator {
-    var calculateMode: CalculatorMode
     var stack: Stack = Stack()
     var postfix = [String]()
     var numberInput = Constant.blank
     let operatorArray = OperatorType.allCases.map{ $0.rawValue }
-    
-    init(calculateMode: CalculatorMode) {
-        self.calculateMode = calculateMode
-    }
-    
+
     func input(_ input: String) {
-        if Int(input) != nil {
+        if !operatorArray.contains(input) {
             numberInput = numberInput + input
         } else if input == "=" {
             postfix.append(numberInput)
@@ -37,43 +32,28 @@ class Calculator {
     
     func output() {
         let postfixFirst = postfix.removeFirst()
+        
         if !operatorArray.contains(postfixFirst) {
             stack.push(postfixFirst)
-        } else if postfixFirst == "+" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond + stackFirst
+            return
+        }
+        
+        guard let stackFirst = stack.pop() else { return }
+        guard let numberFirst = Double(stackFirst) else { return }
+        guard let stackSecond = stack.pop() else { return }
+        guard let numberSecond = Double(stackSecond) else { return }
+        
+        if postfixFirst == "-" {
+            let result = numberSecond - numberFirst
             stack.push(String(result))
-        } else if postfixFirst == "-" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond - stackFirst
+        } else if postfixFirst == "+" {
+            let result = numberSecond + numberFirst
             stack.push(String(result))
         } else if postfixFirst == "*" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond * stackFirst
+            let result = numberSecond * numberFirst
             stack.push(String(result))
-        }    else if postfixFirst == "/" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond / stackFirst
+        } else if postfixFirst == "/" {
+            let result = numberSecond / numberFirst
             stack.push(String(result))
         }
     }
@@ -96,20 +76,20 @@ class Calculator {
             return
         }
         
-        for _ in Constant.zero..<stack.count {
+        outer: for _ in Constant.zero..<stack.count {
             guard let stackTop = stack.top else {
                 return
             }
             guard let stackTopOperatorType = OperatorType(rawValue: stackTop) else {
                 return
             }
-            if inputPriority < stackTopOperatorType.priority {
+            if inputPriority <= stackTopOperatorType.priority {
                 guard let value = stack.pop() else {
                     return
                 }
                 postfix.append(value)
             } else {
-                break
+                break outer
             }
         }
     }
