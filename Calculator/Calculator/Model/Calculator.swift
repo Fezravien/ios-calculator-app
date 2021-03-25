@@ -7,110 +7,149 @@
 import Foundation
 
 class Calculator {
-    var calculateMode: CalculatorMode
-    var stack: Stack = Stack()
-    var postfix = [String]()
-    var numberInput = Constant.blank
-    let operatorArray = OperatorType.allCases.map{ $0.rawValue }
+    var preOperation = ""
+    var numberString = ""
+    var stack = Stack<String>()
     
-    init(calculateMode: CalculatorMode) {
-        self.calculateMode = calculateMode
-    }
-    
-    func input(_ input: String) {
-        if Int(input) != nil {
-            numberInput = numberInput + input
-        } else if input == "=" {
-            postfix.append(numberInput)
-            numberInput = Constant.blank
-            popAllOperatorToList()
-            for _ in Constant.zero..<postfix.count {
-                output()
-            }
+    func input(value: String) {
+        if Int(value) != nil {
+            numberString += value
+        } else if value == "=" {
+            operateFinalStatus()
+            exit(0)
         } else {
-            postfix.append(numberInput)
-            numberInput = Constant.blank
-            popHigherPrioritythan(input)
-            pushOperatorInStack(input)
+            if stack.isEmpty == true {
+                initStack(value)
+            } else {
+                decidePriorityForOperation(value)
+            }
         }
     }
-    
-    func output() {
-        let postfixFirst = postfix.removeFirst()
-        if !operatorArray.contains(postfixFirst) {
-            stack.push(postfixFirst)
-        } else if postfixFirst == "+" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond + stackFirst
-            stack.push(String(result))
-        } else if postfixFirst == "-" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond - stackFirst
-            stack.push(String(result))
-        } else if postfixFirst == "*" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond * stackFirst
-            stack.push(String(result))
-        }    else if postfixFirst == "/" {
-            guard let stackFirst = Int(stack.pop()!) else {
-                return
-            }
-            guard let stackSecond = Int(stack.pop()!) else {
-                return
-            }
-            let result = stackSecond / stackFirst
-            stack.push(String(result))
+
+    func operateMiddleStatus(first: String, operation: String, second: String) -> Float {
+        guard let first = Float(first), let second = Float(second) else {
+            return 0.0
+        }
+        switch operation {
+        case "+":
+            return first + second
+        case "-":
+            return first - second
+        case "*":
+            return first * second
+        case "/":
+            return first / second
+        default:
+            fatalError()
         }
     }
-        
-        func pushOperatorInStack(_ input: String) {
-            stack.push(input)
+
+    func operateFinalStatus() {
+        if stack.count < 3 {
+            let operation = stack.pop()!
+            let first = stack.pop()!
+            let result = operateMiddleStatus(first: first, operation: operation, second: numberString)
+            print(String(result).prefix(9))
+        } else {
+            let a = operateMiddleStatus(first: stack.pop()!, operation: preOperation, second: numberString)
+            let operation = stack.pop()!
+            let first = stack.pop()!
+            let result = operateMiddleStatus(first: first, operation: operation, second: String(a))
+            print(String(result).prefix(9))
         }
-        
-        func popAllOperatorToList() {
-            for _ in Constant.zero..<stack.count {
-                guard let stackTop = stack.pop() else {
-                    return
-                }
-                postfix.append(stackTop)
-            }
+    }
+
+    func initStack(_ value: String) {
+        if numberString.count != 0 {
+            stack.push(numberString)
+            stack.push(value)
+            preOperation = value
+            numberString = ""
         }
-        
-        func popHigherPrioritythan(_ input: String) {
-            guard let inputPriority = OperatorType(rawValue: input)?.priority else {
-                return
-            }
+    }
+
+    func decidePriorityForOperation(_ value: String) {
+        if value == "+" || value == "-" {
+            hasPriorityLow(value)
+        } else if value == "*" || value == "/" {
+            hasPriorityHigh(value)
+        }
+    }
+
+    private func hasPriorityLow(_ value: String) {
+        guard let inputPriority = OperatorType(rawValue: value)?.priority,
+              let preInputPriority = OperatorType(rawValue: preOperation)?.priority else {
             
-            for _ in Constant.zero..<stack.count {
-                guard let stackTop = stack.top else {
-                    return
-                }
-                guard let stackTopOperatorType = OperatorType(rawValue: stackTop) else {
-                    return
-                }
-                if inputPriority < stackTopOperatorType.priority {
-                    guard let value = stack.pop() else {
-                        return
-                    }
-                    postfix.append(value)
-                } else {
-                    break
-                }
-            }
+            return
+        }
+        if inputPriority < preInputPriority {
+            hasPriorityHighToLow(value)
+            return
+        }
+        let operation = stack.pop()!
+        let first = stack.pop()!
+        let result = operateMiddleStatus(first: first, operation: operation, second: numberString)
+        print(result)
+        stack.push(String(result))
+        stack.push(value)
+        preOperation = value
+        numberString = ""
+    }
+
+    private func hasPriorityHigh(_ value: String) {
+        guard let inputPriority = OperatorType(rawValue: value)?.priority,
+              let preInputPriority = OperatorType(rawValue: preOperation)?.priority else {
+            
+            return
+        }
+        if inputPriority > preInputPriority {
+            hasPriorityLowToHigh(value)
+        } else {
+            stack.push(numberString)
+            preOperation = value
+            numberString = ""
         }
     }
+
+    private func hasPriorityHighToLow(_ value: String) {
+        if stack.count < 3 {
+            let operation = stack.pop()!
+            let first = stack.pop()!
+            let result = operateMiddleStatus(first: first, operation: operation, second: numberString)
+            print(result)
+            stack.push(String(result))
+            stack.push(value)
+            numberString = ""
+            return
+        }
+        let first = stack.pop()!
+        let result = operateMiddleStatus(first: first, operation: preOperation, second: numberString)
+        let operation = stack.pop()!
+        let initValue = stack.pop()!
+        let finalResult = operateMiddleStatus(first: initValue, operation: operation, second: String(result))
+        numberString = ""
+        stack.push(String(finalResult))
+        stack.push(value)
+        preOperation = value
+        print(finalResult)
+    }
+
+    private func hasPriorityLowToHigh(_ value: String) {
+        if stack.count < 3 {
+            let operation = stack.pop()!
+            let first = stack.pop()!
+            let result = operateMiddleStatus(first: first, operation: operation, second: numberString)
+            print(result)
+            stack.push(String(result))
+            stack.push(preOperation)
+            numberString = ""
+            return
+        }
+        let first = stack.pop()!
+        let result = operateMiddleStatus(first: first, operation: value, second: numberString)
+        print(result)
+        stack.push(String(result))
+        numberString = ""
+    }
+
+}

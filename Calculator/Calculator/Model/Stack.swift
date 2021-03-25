@@ -7,26 +7,30 @@
 
 import Foundation
 
-struct Stack {
-    var array = [String]()
+public struct Stack<T> {
+    private var array = [T]()
     
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         return array.isEmpty
     }
     
-    var count: Int {
+    public var count: Int {
         return array.count
     }
     
-    mutating func push(_ element: String) {
+    public mutating func push(_ element: T) {
         array.append(element)
     }
     
-    mutating func pop() -> String? {
+    public mutating func pop() -> T? {
         return array.popLast()
     }
     
-    var top: String? {
+    public mutating func reset() {
+        array.removeAll()
+    }
+    
+    public var top: T? {
         return array.last
     }
 }
