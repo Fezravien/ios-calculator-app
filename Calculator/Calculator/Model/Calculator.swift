@@ -18,22 +18,17 @@ class Calculator {
         } else if input == "=" {
             postfix.append(numberInput)
             numberInput = Constant.blank
-            popAllOperatorToList()
-            for _ in Constant.zero..<postfix.count {
-                let postfixFirst = postfix.removeFirst()
+            //            popAllOperatorToList()
+            for _ in Constant.zero..<stack.count {
+                guard let firstLastElement = postfix.popLast() else { return }
+                guard let firstLastNumber = Double(firstLastElement) else { return }
+                guard let secondLastElement = postfix.popLast() else { return }
+                guard let secondLastNumber = Double(secondLastElement) else { return }
                 
-                if !operatorArray.contains(postfixFirst) {
-                    stack.push(postfixFirst)
-                    return
-                }
+                guard let topOperator = stack.pop() else { return }
                 
-                guard let stackFirst = stack.pop() else { return }
-                guard let numberFirst = Double(stackFirst) else { return }
-                guard let stackSecond = stack.pop() else { return }
-                guard let numberSecond = Double(stackSecond) else { return }
-                
-                let stringValue = output(operatorString: postfixFirst, numberFirst: numberFirst, numberSecond: numberSecond)
-                stack.push(stringValue)
+                let result = output(operatorString: topOperator, numberFirst: firstLastNumber, numberSecond: secondLastNumber)
+                postfix.append(result)
             }
         } else {
             postfix.append(numberInput)
@@ -90,17 +85,33 @@ class Calculator {
         
         if inputPriority <= stackTopOperatorType.priority {
             guard let numberFirst = Double(postfix.removeLast()) else { return }
-            guard let number = postfix.last else { return }
             guard let numberSecond = Double(postfix.removeLast()) else { return }
             let result = output(operatorString: stackTop, numberFirst: numberSecond, numberSecond: numberFirst)
             postfix.append(result)
-            stack.pop()
+            _ = stack.pop()
         } else {
-            guard let value = stack.pop() else {
-                return
+            for _ in Constant.zero..<stack.count {
+                
+                guard let topOperator = stack.top else { return }
+                guard let ss = OperatorType(rawValue: topOperator) else {
+                    return
+                }
+                
+                if ss.priority > inputPriority {
+                    _ = stack.pop()
+                    
+                    guard let firstLastElement = postfix.popLast() else { return }
+                    guard let firstLastNumber = Double(firstLastElement) else { return }
+                    guard let secondLastElement = postfix.popLast() else { return }
+                    guard let secondLastNumber = Double(secondLastElement) else { return }
+                    
+                    
+                    let result = output(operatorString: topOperator, numberFirst: firstLastNumber, numberSecond: secondLastNumber)
+                    postfix.append(result)
+                }
             }
-            postfix.append(value)
-        }
+        } //현재 우선순위가 stack Top의 우선순위보다 높을 때?
         
-    }
+    }// 11 * 2 * 2 + 2 =
+    
 }
