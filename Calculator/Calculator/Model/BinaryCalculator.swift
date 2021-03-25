@@ -12,7 +12,7 @@ class BinaryCalculator: Calculator {
     
     private override init() { }
     
-    override func output() {
+    func output() {
         let postfixFirst = postfix.removeFirst()
         
         if !operatorArray.contains(postfixFirst) { //숫자일 경우 stack에 넣어버리기

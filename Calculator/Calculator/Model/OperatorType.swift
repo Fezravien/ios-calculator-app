@@ -20,6 +20,7 @@ enum OperatorType: String, CaseIterable {
     case not = "~"
     case leftShift = "<<"
     case rightShift = ">>"
+    case equal = "="
     
     func resultDecimal(operatorType: Self, lhs: Double, rhs: Double = 0) -> Double {
         switch operatorType{
@@ -73,6 +74,8 @@ enum OperatorType: String, CaseIterable {
             return 6
         case .or:
             return 5
+        default:
+            return 0
         }
     }
     
@@ -102,6 +105,8 @@ enum OperatorType: String, CaseIterable {
             return "<<"
         case .rightShift:
             return ">>"
+        case .equal:
+            return "="
         }
     }
 }
